@@ -6,7 +6,7 @@ import soundfile as sf
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mix_data import STFT
+from STFT import STFT
 import plot
 
 """
