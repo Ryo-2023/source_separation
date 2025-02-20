@@ -12,6 +12,7 @@ from mix_data import STFT
 N : 音源数
 F : 周波数ビン数
 T : フレーム数
+K : 基底数
 """
 
 class NMF():
@@ -27,9 +28,9 @@ class NMF():
         self.H = torch.rand(N,T,K)           # アクティベーション
         self.Y = torch.einsum("nfk,ntk->nft",self.W,self.H)  # 推定スペクトログラム, W*H, [N,F,T]
         
-        self.eps = 1e-10       # 0割防止のための微小値
-        self.threshold = 1e-5  # 収束判定の閾値
-        self.max_iter = max_iter
+        self.eps = 1e-10            # 0割防止のための微小値
+        self.threshold = 1e-5       # 収束判定の閾値
+        self.max_iter = max_iter    # 最大イテレーション数
         
     @staticmethod
     def KL_divergence(X,Y):
@@ -117,7 +118,10 @@ def plot_spectrogram(X,sr, title="Spectrogram"):
     # 縦軸のラベルを周波数に設定
     num_freq_bins = X.shape[0]
     freq_bins = np.linspace(0, int(sr / 2), num_freq_bins)
-    plt.yticks(np.arange(0, num_freq_bins, step=int(2000 / (sr / 2) * num_freq_bins)), np.round(freq_bins[::int(2000 / (sr / 2) * num_freq_bins)]).astype(int))    
+    tick_freqs = np.array(np.arange(0, int(sr / 2) + 1, 2000),dtype=int)
+    tick_positions = np.round(tick_freqs / (float(sr) / 2) * (num_freq_bins - 1)).astype(int)
+    plt.yticks(tick_positions, tick_freqs)
+    
     plt.tight_layout()
     plt.show()
     
@@ -147,7 +151,7 @@ def main():
     
     stft = STFT(data_path,n_fft=n_fft)
     source_amp, source_phase, X_amp, X_phase = stft.run_stft()
-    sr = stft.sr  # サンプリング周波数
+    sr = stft.sr.item()  # サンプリング周波数
 
     # X_amp を (N,F,T) に変換
     if X_amp.dim() == 2:
