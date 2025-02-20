@@ -14,10 +14,10 @@ class STFT():
         self.n_fft = n_fft
         self.F_bin = self.n_fft//2 + 1
         
-        self.data_list, self.sr = self.get_data()
+        self.data_list, self.sr = self.get_reshaped_data()
         self.mixed_data = self.generate_mixed_data()
         
-    def get_data(self):
+    def get_reshaped_data(self):
         data_list = []
         sr_list = []
         for path in self.path:
@@ -50,6 +50,7 @@ class STFT():
         
         # 混合音の生成
         mixed_data = torch.sum(data_list,dim=0)
+        mixed_data = mixed_data / torch.max(torch.abs(mixed_data))  # 正規化
         
         return mixed_data
         
