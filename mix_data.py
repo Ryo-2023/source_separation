@@ -51,10 +51,8 @@ class STFT():
         
         return mixed_data
         
-    def stft(self):
-        stft_result = torch.stft(self.mixed_data,n_fft=self.n_fft,hop_length=self.n_fft//4, window=torch.hann_window(self.n_fft), return_complex=True)
-        print("stft_result.shape:",stft_result.shape)
-        print("stft_result.dtype:",stft_result.dtype)
+    def stft(self,data):
+        stft_result = torch.stft(data,n_fft=self.n_fft,hop_length=self.n_fft//4, window=torch.hann_window(self.n_fft), return_complex=True)
         
         # 振幅スペクトログラムと位相スペクトログラムに分ける
         amp = torch.abs(stft_result)
@@ -62,6 +60,20 @@ class STFT():
         
         return amp, phase
     
+    def run_stft(self):
+        data_amp = []
+        data_phase = []
+        for data in self.data_list:
+            amp,phase = self.stft(data)
+            data_amp.append(amp)
+            data_phase.append(phase)
+        data_amp = torch.stack(data_amp)
+        data_phase = torch.stack(data_phase)
+        
+        mixed_amp, mixed_phase = self.stft(self.mixed_data)
+        
+        return data_amp, data_phase, mixed_amp, mixed_phase
+            
 def plot_spectrogram(X,sr, title="Spectrogram"):
     plt.figure(figsize=(10, 4))
     plt.imshow(20 * torch.log10(torch.abs(X) + 1e-10).numpy(), aspect='auto', origin='lower', cmap='viridis')
