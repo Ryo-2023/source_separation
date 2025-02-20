@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mix_data import STFT
+import plot
 
 """
 N : 音源数
@@ -106,35 +107,6 @@ def add_noise(data,threshold=1e-3):
     noisy_data = data.clone()
     noise = torch.rand(data.shape)*2*threshold - threshold
     return noisy_data + noise
-
-def plot_spectrogram(X,sr, title="Spectrogram"):
-    plt.figure(figsize=(10, 4))
-    plt.imshow(20 * torch.log10(torch.abs(X) + 1e-10).numpy(), aspect='auto', origin='lower', cmap='viridis')
-    plt.colorbar(format='%+2.0f dB')
-    plt.title(title)
-    plt.xlabel('Time')
-    plt.ylabel('Frequency')
-    
-    # 縦軸のラベルを周波数に設定
-    num_freq_bins = X.shape[0]
-    freq_bins = np.linspace(0, int(sr / 2), num_freq_bins)
-    tick_freqs = np.array(np.arange(0, int(sr / 2) + 1, 2000),dtype=int)
-    tick_positions = np.round(tick_freqs / (float(sr) / 2) * (num_freq_bins - 1)).astype(int)
-    plt.yticks(tick_positions, tick_freqs)
-    
-    plt.tight_layout()
-    plt.show()
-    
-def plot_divergence(KL_values):
-    plt.figure()
-    plt.plot(KL_values)
-    plt.yscale('log')
-    plt.xlabel('Iteration')
-    plt.ylabel('Divergence')
-    plt.title('Divergence over Iterations')
-    plt.grid(True)
-    plt.show()
-
     
 def main():
     # torchの設定
@@ -162,7 +134,7 @@ def main():
     for i in range(len(source_amp)):
         plot_spectrogram(source_amp[i], sr, title="Source Spectrogram " + str(i+1))
     """
-    plot_spectrogram(X_amp[0], sr, title="Mixed Spectrogram")
+    plot.plot_spectrogram(X_amp[0], sr, title="Mixed Spectrogram")
     
     # NMFの実行
     N = X_amp.shape[0]
@@ -173,9 +145,9 @@ def main():
     Y,IS_data = nmf.run_NMF()
     
     # 分離されたスペクトログラムの表示
-    plot_spectrogram(Y[0], sr, title="Separated Spectrogram 1")
+    plot.plot_spectrogram(Y[0], sr, title="Separated Spectrogram 1")
     
-    plot_divergence(IS_data)
+    plot.plot_divergence(IS_data)
     
 if __name__ == "__main__":
     main()

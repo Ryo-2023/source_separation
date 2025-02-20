@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
+import plot
+
 torch.set_default_dtype(torch.float64)
 
 class STFT():
@@ -73,30 +75,15 @@ class STFT():
         mixed_amp, mixed_phase = self.stft(self.mixed_data)
         
         return data_amp, data_phase, mixed_amp, mixed_phase
-            
-def plot_spectrogram(X,sr, title="Spectrogram"):
-    plt.figure(figsize=(10, 4))
-    plt.imshow(20 * torch.log10(torch.abs(X) + 1e-10).numpy(), aspect='auto', origin='lower', cmap='viridis')
-    plt.colorbar(format='%+2.0f dB')
-    plt.title(title)
-    plt.xlabel('Time')
-    plt.ylabel('Frequency')
-    
-    # 縦軸のラベルを周波数に設定
-    num_freq_bins = X.shape[0]
-    freq_bins = np.linspace(0, int(sr / 2), num_freq_bins)
-    plt.yticks(np.arange(0, num_freq_bins, step=int(2000 / (sr / 2) * num_freq_bins)), np.round(freq_bins[::int(2000 / (sr / 2) * num_freq_bins)]).astype(int))    
-    plt.tight_layout()
-    plt.show()
     
 def main():
     path = ["wav1.wav","wav2.wav"]
     stft = STFT(path)
-    amp, phase = stft.stft()
+    d_amp,d_phase,amp, phase = stft.run_stft()
     print("amp.shape:",amp.shape)
     print("phase.shape:",phase.shape)
 
-    plot_spectrogram(amp,stft.sr,"Mixed Spectrogram")
+    plot.plot_spectrogram(amp,stft.sr,"Mixed Spectrogram")
     
 if __name__ == "__main__":
     main()
