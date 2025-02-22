@@ -30,8 +30,8 @@ class STFT():
         for i in range(len(data_list)):
             data_list[i] = data_list[i][:min_len]    
         
-        data_list = torch.tensor(data_list)
-        sr_list = torch.tensor(sr_list)
+        data_list = torch.tensor(np.array(data_list))
+        sr_list = torch.tensor(np.array(sr_list))
         
         # 正規化
         for i in range(len(data_list)):
