@@ -48,6 +48,8 @@ class PCA():
         sorted_idx = torch.argsort(eighvals,descending=True)
         sorted_vals = eighvals[sorted_idx]
         sorted_vectors = eigvectors[:,sorted_idx]
+        print("sorted_vals:",sorted_vals)
+        print("sorted_vectors:",sorted_vectors)
         
         # 主成分を取得（固有値の大きい方からN個）
         lamda = sorted_vals[:self.N]
@@ -71,22 +73,22 @@ def generate_test_data():
     torch.manual_seed(1)
     
     # まずは大きめの分散を持つ分布
-    mean1 = [1.2, 1.5]
-    cov1 = [[0.65, 0.355], [0.3, 0.7]]
-    data1 = np.random.multivariate_normal(mean1, cov1, 50)
+    mean1 = [0.7,0.8]
+    cov1 = [[0.1,0.2], [0.2,0.1]]
+    data1 = np.random.multivariate_normal(mean1, cov1, 10)
 
     # 異なるオフセット＆分散を持つ別の分布
-    mean2 = [-2, -0.6]
-    cov2 = [[1, 0.2], [0.2, 1]]
-    data2 = np.random.multivariate_normal(mean2, cov2, 50)
+    mean2 = [1, 1]
+    cov2 = [[0.5,-0.2], [-0.2, 0.5]]
+    data2 = np.random.multivariate_normal(mean2, cov2, 100)
     
-    mean3 = [1.1,-1.5]
-    cov3 = [[0.1,0.9],[0.2,0.8]]
-    data3 = np.random.multivariate_normal(mean3,cov3,50)
-
+    mean3 = [1,1]
+    cov3 = [[0.5,0.2],[0.5,0.2]]
+    data3 = np.random.multivariate_normal(mean3,cov3,100)
+    
     # 結合
-    data = np.vstack((data1, data2,data3))  # shape: (100, 2)
-    X_noisy = torch.tensor(data, dtype=torch.float32).T  # (2, 100)
+    data = np.vstack((data1, data2,data3))  # shape: (5, 2)
+    X_noisy = torch.tensor(data, dtype=torch.float32).T  # (2, 5)
     
     # 中心化
     X_noisy = X_noisy - torch.mean(X_noisy,dim=1,keepdim=True)
@@ -95,7 +97,7 @@ def generate_test_data():
     X_noisy = X_noisy / torch.std(X_noisy,dim=1,keepdim=True)
     
     # ノイズの追加（分散を大きめに設定）
-    noise = torch.randn(X_noisy.shape) * 0.3
+    noise = torch.randn(X_noisy.shape) * 0.1
     X_noisy =  X_noisy + noise
     
     return X_noisy
@@ -106,18 +108,20 @@ def main():
     dim = 1
     
     pca = PCA(X,N,dim)
+    
     s,r = pca.pca()
     print("s:",s)
     print("r:",r)
     
     # 元のデータと次元削減後のデータをプロット
     plt.scatter(X[0, :], X[1, :], label='Original Data')
-    plt.scatter(s[0, :], s[1,:],np.zeros(s.shape[1]), label='PCA Reduced Data')
+    #plt.scatter(s[0, :], s[1,:],np.zeros(s.shape[1]), label='PCA Reduced Data')
     
     # 固有ベクトルを矢印としてプロット
     origin = torch.mean(X, dim=1).numpy()
+    colors = ['r', 'g', 'b']
     for i in range(pca.W.shape[1]):
-        plt.quiver(origin[0], origin[1], pca.W[0, i], pca.W[1, i], scale=5, scale_units='xy', angles='xy', color='r')
+        plt.quiver(origin[0], origin[1], pca.W[0, i], pca.W[1, i], scale=0.5, scale_units="xy", angles='xy', color=colors[i], label=f'PC{i+1}')
         
     plt.legend()
     plt.show()
