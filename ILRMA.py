@@ -1,14 +1,20 @@
-import torch
 import numpy as np
-from tqdm import tqdm
-import matplotlib.pyplot as plt
+import torch
 
-class ICA():
+class ILRMA():
     def __init__(self,X):
-        self.X = X      # [N,F,T]
+        self.X = X  # [F,T,M]
         
-        self.N = X.shape[0]
-        self.F = X.shape[1]
-        self.T = X.shape[2]
+        self.F = X.shape[0]  # 周波数ビン数
+        self.T = X.shape[1]  # フレーム数
+        self.M = X.shape[2]  # マイク数
+        self.N = self.M      # 音源数 = マイク数
         
-        self.W = 
+        self.K = 4  # 基底数
+        self.method = "ILRMA"
+    
+    def initialize(self):
+        self.W_
+
+    
+        
