@@ -15,24 +15,32 @@ class ILRMA():
     
     def initialize(self):
         self.V_FMM = np.random.randn(self.F,self.M,self.M)
-        self.W_FNM = np.random.randn(self.F,self.M,self.N)
-        self.U_NFK = np.random.randn(self.N,self.F,self.K)
-        self.H_NKT = np.random.randn(self.N,self.K,self.T)
+        self.W_FNM = np.tile(np.eye(self.M,dtype=np.complex128)[None,:,:],(self.F,1,1))
+        
+        rng = np.random.default_rng()
+        self.U_NFK = rng.random((self.N,self.F,self.K)) + self.eps
+        self.H_NKT = rng.random((self.N,self.K,self.T)) + self.eps
         
         self.lambda_NFT = np.einsum("nfk,nkt->nft",self.U_NFK,self.H_NKT)
         
     def update_W(self):
-        # IVA part
-        XX = np.einsum("ftm,ftp->ftmp",self.X,np.conj(self.X))
-        V_FNMM = np.einsum("ftmp,nft->fnmp",XX,1/(self.lambda_NFT+ self.eps)) / self.T
-        
-        WV_FNN = np.einsum("fij,fnjk->fnik",self.W_FNM,V_FNMM)
-        I_FNN = np.broadcast_to(np.eye(self.N,dtype=np.complex128),(self.F,self.N,self.N))
-        inv_WV = np.linalg.solve(WV_FNN,I_FNN)
-        temp_W_FNM = np.swapaxes(inv_WV,1,2)
-        
-        norm = np.einsum("fnm,fnmk,fnk->fn",np.conj(temp_W_FNM),V_FNMM,temp_W_FNM)
-        self.W_FNM = np.conj(temp_W_FNM / np.sqrt(norm + self.eps)[...,None])
+        XX_FTMM  = np.einsum('ftm,ftp->ftmp', self.X, np.conj(self.X))
+        V_FNMM   = np.einsum('ftmp,nft->fnmp', XX_FTMM, 1.0/(self.lambda_NFT + self.eps)) / self.T
+        for n in range(self.N):
+            A_FNMM = np.einsum('fij,fjk->fik', self.W_FNM, V_FNMM[:, n])
+            e_FM   = np.zeros((self.F, self.M), dtype=np.complex128)
+            e_FM[:, n] = 1.0
+            w_FM   = np.linalg.solve(A_FNMM, e_FM)
+            denom  = np.einsum('fm,fmn,fn->f', np.conj(w_FM), V_FNMM[:, n], w_FM).real + self.eps
+            w_FM   = w_FM / np.sqrt(denom)[:, None]
+            self.W_FNM[:, n, :] = np.conj(w_FM)
+
+                                          
+
+            
+    
+    
+    
         
         
         
